@@ -1,10 +1,4 @@
-<?php include __DIR__ . '/../layout/header.php';
-
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    header("Location: login.php");
-    exit;
-}
-?>
+<?php include __DIR__ . '/../layout/header.php';?>
 
 <main style="padding: 1rem;">
   <!-- Top status boxes (Nieuw, In bewerking, Inspectie, etc.) -->
