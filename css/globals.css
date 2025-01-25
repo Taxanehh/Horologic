@@ -50,6 +50,11 @@ min-height: 100vh;
     font-weight: 600;
 
   }
+
+  ::placeholder{
+    color: #999;
+    opacity: 1; 
+  }
   
   .user-email {
     font-size: 0.875rem;
@@ -183,5 +188,40 @@ min-height: 100vh;
 
   .status-title{
     font-weight: bold;
+  }
+
+  .filter-box {
+    display: flex;
+    flex-wrap: wrap;          /* let it wrap on smaller screens */
+    gap: 0.5rem;              /* spacing between columns */
+    padding: 1rem;          /* inside space */
+    border: 1px solid #ddd;   /* light border */
+    border-radius: 4px;       /* slightly rounded corners */
+    background-color: #fff;   /* white background */
+    border-left: 5px solid #dfdfdf;
+  }
+
+  .filter-box:hover{
+    border-color: #dfdfdf !important;
+  }
+  
+  .filter-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;             /* little space between input & icon */
+    /* optional: fix a width if you want them uniform, e.g.: width: 140px; */
+  }
+  
+  .filter-item input {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.875rem;
+    /* optional: width: 100%; if you're setting a fixed width for filter-item */
+  }
+  
+  .filter-item i {
+    color: #666;   /* icon color */
+    cursor: pointer;
   }
   

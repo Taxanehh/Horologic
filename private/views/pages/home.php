@@ -79,43 +79,74 @@
 
 
   <!-- Row with "Toevoegen" button, search bar, filter buttons -->
-  <div class="actions" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-    <button style="background-color: #28a745; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px;">
-      Toevoegen
+  <div class="actions" style="
+    display: flex; 
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-left: 1rem;  /* or margin-left: 1rem; */
+  ">
+    <!-- Left side: Toevoegen button -->
+    <button 
+      style="background-color: #28b97b; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px;"
+    >
+      <i class="fa fa-check-circle"></i> Toevoegen
     </button>
-    <input 
-      type="text" 
-      placeholder="Zoek naar..." 
-      style="flex: 1; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;"
-    />
-    <button style="background-color: #007bff; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px;">
-      Filter
-    </button>
-    <button style="background-color: #dc3545; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px;">
-      Filter verwijderen
-    </button>
+
+    <!-- Right side: search + filter buttons -->
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-left: 11.5rem;">
+      <input 
+        type="text" 
+        placeholder="Zoek naar..." 
+        style="padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; width: 200px;"
+      />
+      <button 
+        style="background-color: #153c63; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; font-weight: 300;"
+      >
+        <i class="fa fa-search-plus"></i> Filter
+      </button>
+      <button 
+        style="background-color: #153c63; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; font-weight: 300;"
+      >
+        Filter verwijderen
+      </button>
+    </div>
   </div>
 
   <!-- Table area (you said to ignore actual data, so just show headers) -->
-  <div class="table-container" style="background-color: #fff; border: 1px solid #ddd; border-radius: 4px; overflow-x: auto;">
-    <table style="width: 100%; border-collapse: collapse;">
-      <thead>
-        <tr style="background-color: #f1f1f1; text-align: left;">
-          <th style="padding: 0.75rem; border-bottom: 1px solid #ddd;">Reparatienummer</th>
-          <th style="padding: 0.75rem; border-bottom: 1px solid #ddd;">Juwelier</th>
-          <th style="padding: 0.75rem; border-bottom: 1px solid #ddd;">Plaats</th>
-          <th style="padding: 0.75rem; border-bottom: 1px solid #ddd;">Merk</th>
-          <th style="padding: 0.75rem; border-bottom: 1px solid #ddd;">Model</th>
-          <th style="padding: 0.75rem; border-bottom: 1px solid #ddd;">Serienummer</th>
-          <th style="padding: 0.75rem; border-bottom: 1px solid #ddd;">Reparatienummer</th>
-          <th style="padding: 0.75rem; border-bottom: 1px solid #ddd;">Horlogemaker</th>
-          <th style="padding: 0.75rem; border-bottom: 1px solid #ddd;">Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Rows would go here, but you said to ignore the data for now -->
-      </tbody>
-    </table>
+  <div class="filter-box">
+    <!-- Each "filter-item" is one column: input + sort icon -->
+    <div class="filter-item">
+      <input type="text" placeholder="Reparatienummer..." />
+      <i class="fa fa-arrows-alt-v"></i>
+    </div>
+    <div class="filter-item">
+      <input type="text" placeholder="Juwelier..." />
+      <i class="fa fa-arrows-alt-v"></i>
+    </div>
+    <div class="filter-item">
+      <input type="text" placeholder="Plaats..." />
+      <i class="fa fa-arrows-alt-v"></i>
+    </div>
+    <div class="filter-item">
+      <input type="text" placeholder="Merk..." />
+      <i class="fa fa-arrows-alt-v"></i>
+    </div>
+    <div class="filter-item">
+      <input type="text" placeholder="Model..." />
+      <i class="fa fa-arrows-alt-v"></i>
+    </div>
+    <div class="filter-item">
+      <input type="text" placeholder="Serienummer..." />
+      <i class="fa fa-arrows-alt-v"></i>
+    </div>
+    <div class="filter-item">
+      <input type="text" placeholder="Reparatienummer..." />
+      <i class="fa fa-arrows-alt-v"></i>
+    </div>
+    <div class="filter-item">
+      <input type="text" placeholder="Horlogemaker..." />
+      <i class="fa fa-arrows-alt-v"></i>
+    </div>
   </div>
 </main>
 
