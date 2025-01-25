@@ -55,5 +55,133 @@ min-height: 100vh;
     font-size: 0.875rem;
     color: #888;         
   }
+
+  .status-box {
+    background-color: #fff;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    text-align: left;
+    width: 285px;
+    height: 85px;
+    margin-bottom: 0.5rem;
+  }
+
+  .nieuw-box {
+    position: relative;
+    padding: 20px;
+    border: 2px solid rgba(0, 0, 0, 0.125);
+    border-left: 5px solid #fffd54;
+    cursor: pointer;
   
+    transition: border-color 0.15s;
+  }
+
+  .alle-box{
+    border-left: 5px solid #dfdfdf;
+  }
+
+  .alle-box:hover{
+    border-color: #dfdfdf !important;
+  }
+
+  .terug-box{
+    border-left: 5px solid #f8f4e6;
+  }
+
+  .terug-box:hover{
+    border-color: #f8f4e6 !important;
+  }
+
+  .repa-box{
+    border-left: 5px solid #92fa5b;
+  }
+
+  .repa-box:hover{
+    border-color: #92fa5b !important;
+  }
+
+  .annu-box{
+    border-left: 5px solid #ea3223;
+  }
+
+  .annu-box:hover{
+    border-color: #ea3223 !important;
+  }
+
+  .leverancier-box{
+    border-left: 5px solid #8d43f6;
+  }
+
+  .leverancier-box:hover{
+    border-color: #8d43f6 !important;
+  }
+
+  .wacht-box{
+    border-left: 5px solid #cadfb8;
+  }
+
+  .wacht-box:hover{
+    border-color: #cadfb8 !important;
+  }
+
+  .beoordeel-box{
+    border-left: 5px solid #91fcfd;
+  }
+
+  .beoordeel-box:hover{
+    border-color: #91fcfd !important;
+  }
+
+  .kosten-box{
+    border-left: 5px solid #dfdfdf;
+  }
+
+  .kosten-box:hover{
+    border-color: #dfdfdf !important;
+  }
+
+  .toest-box{
+    border-left: 5px solid #000;
+  }
+
+  .toest-box:hover{
+    border-color: #000 !important;
+  }
+
+  .inspec-box{
+    border-left: 5px solid #f1a0f9;
+  }
+
+  .inspec-box:hover{
+    border-color: #f1a0f9 !important;
+  }
+
+
+  .bewerk-box{
+    border-left: 5px solid #f19d38;
+  }
+
+  .bewerk-box:hover{
+    border-color: #f19d38 !important;
+  }
+  
+  .nieuw-box:hover {
+    border-color: #fffd54;
+  }
+  
+  a:not([href]):hover {
+    color: inherit;
+    text-decoration: none;
+  }
+  
+  .repairs .repair {
+    display: block;
+    background: #fff;
+    border-radius: 5px;
+    margin-bottom: 3px;
+  }
+
+  .status-title{
+    font-weight: bold;
+  }
   

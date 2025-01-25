@@ -2,47 +2,81 @@
 
 <main style="padding: 1rem;">
   <!-- Top status boxes (Nieuw, In bewerking, Inspectie, etc.) -->
-  <div class="status-boxes" style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
-    <!-- Example single box; repeat for each status -->
-    <div style="
-      flex: 0 1 200px; 
-      background-color: #ffffff; 
-      border: 1px solid #ddd; 
-      border-radius: 4px; 
-      padding: 1rem; 
-      text-align: center;
-    ">
-      <div style="font-weight: bold;">Nieuw</div>
-      <div style="font-size: 1.4rem; color: #666;">161</div>
+  <div class="status-boxes" style="display: flex; flex-wrap: wrap; gap: 0 2rem; margin-bottom: 1rem;">
+  
+    <!-- Nieuw -->
+    <div class="status-box nieuw-box">
+      <div class="status-title">Nieuw</div>
+      <div class="status-count">161</div>
     </div>
 
-    <div style="
-      flex: 0 1 200px;
-      background-color: #ffffff;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 1rem;
-      text-align: center;
-    ">
-      <div style="font-weight: bold;">In bewerking</div>
-      <div style="font-size: 1.4rem; color: #666;">133</div>
+    
+    <!-- In bewerking -->
+    <div class="status-box nieuw-box bewerk-box">
+      <div class="status-title">In bewerking</div>
+      <div class="status-count">133</div>
     </div>
 
-    <div style="
-      flex: 0 1 200px;
-      background-color: #ffffff;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 1rem;
-      text-align: center;
-    ">
-      <div style="font-weight: bold;">Inspectie</div>
-      <div style="font-size: 1.4rem; color: #666;">59</div>
+    <div class="status-box nieuw-box inspec-box">
+      <div class="status-title">Inspectie</div>
+      <div class="status-count">59</div>
     </div>
 
-    <!-- Repeat for all other boxes: Toestemming, Kosten akkoord, etc. -->
-    <!-- ... -->
+    <!-- Toestemming -->
+    <div class="status-box nieuw-box toest-box">
+      <div class="status-title">Toestemming</div>
+      <div class="status-count">48</div>
+    </div>
+
+    <!-- Kosten akkoord -->
+    <div class="status-box nieuw-box kosten-box">
+      <div class="status-title">Kosten akkoord</div>
+      <div class="status-count">???</div>
+    </div>
+
+    <!-- Beoordelen -->
+    <div class="status-box nieuw-box beoordeel-box">
+      <div class="status-title">Beoordelen</div>
+      <div class="status-count">???</div>
+    </div>
+
+    <!-- In de wacht -->
+    <div class="status-box nieuw-box wacht-box">
+      <div class="status-title">In de wacht</div>
+      <div class="status-count">67</div>
+    </div>
+
+    <!-- Leverancier -->
+    <div class="status-box nieuw-box leverancier-box">
+      <div class="status-title">Leverancier</div>
+      <div class="status-count">2</div>
+    </div>
+
+    <!-- Geannuleerd -->
+    <div class="status-box nieuw-box annu-box">
+      <div class="status-title">Geannuleerd</div>
+      <div class="status-count">115</div>
+    </div>
+
+    <!-- Reparatie klaar -->
+    <div class="status-box nieuw-box repa-box">
+      <div class="status-title">Reparatie klaar</div>
+      <div class="status-count">799</div>
+    </div>
+
+    <!-- Teruggestuurd -->
+    <div class="status-box nieuw-box terug-box">
+      <div class="status-title">Teruggestuurd</div>
+      <div class="status-count">8166</div>
+    </div>
+
+    <!-- Alle statussen -->
+    <div class="status-box nieuw-box alle-box">
+      <div class="status-title">Alle statussen</div>
+      <div class="status-count">9733</div>
+    </div>
   </div>
+
 
   <!-- Row with "Toevoegen" button, search bar, filter buttons -->
   <div class="actions" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
