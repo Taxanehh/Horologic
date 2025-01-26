@@ -1,57 +1,53 @@
 <?php
 
 session_start();
-require_once '/../../models/db.php';
+require_once 'db.php';
+
 function findUserByEmail($email) {
-  $conn = getDbConnection();
-  $stmt = $conn->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
-  $stmt->bindValue(':email', $email, PDO::PARAM_STR);
-  $stmt->execute();
-  
-  return $stmt->fetch(PDO::FETCH_ASSOC); // or false if none found
+    $conn = getDbConnection();
+    $stmt = $conn->prepare("SELECT * FROM users WHERE username = :email LIMIT 1");
+    $stmt->bindValue(':email', $email, PDO::PARAM_STR);
+    $stmt->execute();
+
+    return $stmt->fetch(PDO::FETCH_ASSOC); // Returns false if no user found
 }
 
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $email = $_POST['email'] ?? '';
-  $password = $_POST['password'] ?? '';
-
-  // Get user record from DB
-  $user = findUserByEmail($email);
-  if ($user) {
-      // Check password
-      if (password_verify($password, $user['password_hash'])) {
-          // Valid credentials
-          $_SESSION['logged_in'] = true;
-          $_SESSION['user_id']   = $user['id'];
-          header("Location: /home");
-          exit;
-      } else {
-          $error = "Onjuist wachtwoord.";
-      }
-  } else {
-      $error = "Gebruiker niet gevonden.";
-  }
-}
-
-// If user is already logged in, redirect to index
+// Redirect if user is already logged in
 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
     header("Location: home.php");
     exit;
 }
 
-// Handle form submission (dummy check)
+$error = ''; // Initialize error variable for display
+
+// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  if (!empty($_POST['email']) && !empty($_POST['password'])) {
-      $_SESSION['logged_in'] = true;
-      // Again, go to your router path
-      header("Location: /home");
-      exit;
-  } else {
-      $error = "Vul e-mailadres en wachtwoord in.";
-  }
+    $email = $_POST['email'] ?? '';
+    $password = $_POST['password'] ?? '';
+
+    // Get user record from DB
+    $user = findUserByEmail($email);
+
+    if ($user) {
+        // Check password
+        if ($password == $user['password']) {
+            // Valid credentials
+            $_SESSION['logged_in'] = true;
+            $_SESSION['user_id']   = $user['id'];
+            header("Location: home.php");
+            exit;
+        } else {
+            $error = "Onjuist wachtwoord."; // Incorrect password
+           
+        }
+    } else {
+        $error = "Gebruiker niet gevonden."; // User not found
+    }
 }
+
+
 ?>
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -184,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="error"><?php echo $error; ?></div>
     <?php endif; ?>
 
-    <form method="POST" action="/home">
+    <form method="POST" action="/private/views/pages/login.php">
       <div class="form-group">
         <label for="email">E-mailadres <span style="color:red">*</span></label>
         <input 

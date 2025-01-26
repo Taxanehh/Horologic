@@ -1,5 +1,16 @@
-<?php include __DIR__ . '/../layout/header.php';?>
+<?php include __DIR__ . '/../layout/header.php';
 
+
+session_start();
+
+// Check if the user is logged in
+if (!($_SESSION['logged_in'])) {
+    // Redirect to login page if not logged in
+    header("Location: private/views/pages/login.php");
+    exit;
+}
+
+?>
 <main style="padding: 1rem;">
   <!-- Top status boxes (Nieuw, In bewerking, Inspectie, etc.) -->
   <div class="status-boxes" style="display: flex; flex-wrap: wrap; gap: 0 2rem; margin-bottom: 1rem;">
