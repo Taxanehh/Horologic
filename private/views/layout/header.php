@@ -79,10 +79,10 @@
   <!-- Center: Navigation links -->
   <nav>
     <ul>
-      <li><a href="home.php"><i class="fa fa-home"></i> Overzicht</a></li>
-      <li><a href="#"><i class="fa fa-wrench"></i> Mijn reparaties</a></li>
-      <li><a href="#"><i class="fa fa-wrench"></i> Bak toewijzen</a></li>
-      <li><a href="#"><i class="fa fa-euro"></i> Te factureren reparaties</a></li>
+      <li><a href="/"><i class="fa fa-home"></i> Overzicht</a></li>
+      <li><a href="reparaties"><i class="fa fa-wrench"></i> Mijn reparaties</a></li>
+      <li><a href="bak"><i class="fa fa-wrench"></i> Bak toewijzen</a></li>
+      <li><a href="complete"><i class="fa fa-euro"></i> Te factureren reparaties</a></li>
     </ul>
   </nav>
 

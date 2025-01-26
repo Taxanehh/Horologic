@@ -201,6 +201,37 @@ min-height: 100vh;
     border-left: 5px solid #dfdfdf;
   }
 
+  .all-repairs-btn, 
+  .add-button {
+    display: block;          /* Makes them each occupy the full width of container */
+    margin-bottom: 1rem;     /* Space below each button */
+  }
+
+  .all-repairs-btn {
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+  }
+
+  .all-repairs-btn:hover {
+    background-color: #ebebeb;
+  }
+
+  .add-button {
+    background-color: #28b97b; 
+    color: #fff; 
+    border: none; 
+    border-radius: 4px; 
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+  }
+
+
   .filter-box:hover{
     border-color: #dfdfdf !important;
   }
