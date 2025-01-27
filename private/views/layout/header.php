@@ -87,11 +87,23 @@
   </nav>
 
   <!-- Right: User Info -->
-  <div class="user-info">
-    <img src="/../../../img/hond.png" alt="User Avatar">
+  <div class="user-info" id="userInfo">
     <div class="user-text">
       <span class="user-name">Fabian Goede</span>
       <span class="user-email">dummy@dummy.nl</span>
     </div>
+    <div class="dropdown hidden" id="userDropdown">
+      <a href="logout.php">Uitloggen</a>
+    </div>
   </div>
 </header>
+
+<script>
+  // Toggle the dropdown's visibility when user-info is clicked
+  const userInfo = document.getElementById('userInfo');
+  const userDropdown = document.getElementById('userDropdown');
+
+  userInfo.addEventListener('click', () => {
+    userDropdown.classList.toggle('hidden');
+  });
+</script>

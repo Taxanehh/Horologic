@@ -1,9 +1,9 @@
 <?php
 function getDbConnection() {
-    $host = '127.0.0.1'; // Update to your DB host
-    $dbname = 'watchrepair'; // Replace with your database name
+    $host = 'localhost'; // Update to your DB host
+    $dbname = 'horlogic_db'; // Replace with your database name
     $username = 'root'; // Update to your DB username
-    $password = ''; // Update to your DB password (default is empty for XAMPP)
+    $password = 'root'; // Update to your DB password (default is empty for XAMPP)
 
     try {
         $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);

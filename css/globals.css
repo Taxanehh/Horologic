@@ -256,3 +256,41 @@ min-height: 100vh;
     cursor: pointer;
   }
   
+  .user-info {
+    position: relative;         /* so the dropdown can position absolutely */
+    cursor: pointer;            /* indicates it's clickable */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;                /* space between avatar/text (if you have an avatar) */
+  }
+  
+  /* The dropdown container */
+  .dropdown {
+    position: absolute;         /* placed relative to .user-info */
+    top: 100%;                  /* just below the user-info */
+    right: 0;                   /* align to the right edge */
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width: 120px;           /* optional: ensure enough width */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 999;
+    padding: 0.5rem;
+  }
+  
+  /* Hide the dropdown by default */
+  .hidden {
+    display: none;
+  }
+  
+  /* Style the link */
+  .dropdown a {
+    display: block;
+    text-decoration: none;
+    color: #333;
+    padding: 0.25rem 0;
+  }
+  .dropdown a:hover {
+    background-color: #f1f1f1;
+  }
+  
