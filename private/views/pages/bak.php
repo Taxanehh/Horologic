@@ -1,4 +1,12 @@
-<?php include __DIR__ . '/../layout/header.php';?>
+<?php 
+
+if (!($_SESSION['logged_in'])) {
+  // Redirect to login page if not logged in
+  header("Location: /private/views/pages/login.php");
+  exit;
+}
+
+include __DIR__ . '/../layout/header.php';?>
 
 <!DOCTYPE html>
 <html lang="nl">

@@ -6,7 +6,7 @@ session_start();
 // Check if the user is logged in
 if (!($_SESSION['logged_in'])) {
     // Redirect to login page if not logged in
-    header("Location: private/views/pages/login.php");
+    header("Location: /private/views/pages/login.php");
     exit;
 }
 
