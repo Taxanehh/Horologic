@@ -5,8 +5,7 @@ if (!($_SESSION['logged_in'])) {
   header("Location: /private/views/pages/login.php");
   exit;
 }
-
-include __DIR__ . '/../layout/header.php';?>
+?>
 
 <main style="padding: 1rem;">
   <!-- Top status boxes (Nieuw, In bewerking, Inspectie, etc.) -->

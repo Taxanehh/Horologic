@@ -1,5 +1,3 @@
-<?php include __DIR__ . '/../layout/header.php';?>
-
 <main style="padding: 1rem;">
   <!-- Actions row, left-aligned -->
   <div class="actions" style="

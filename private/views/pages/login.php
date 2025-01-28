@@ -1,49 +1,67 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+  session_start();
+}
 
-session_start();
+// Enhanced session security
+session_regenerate_id(true);
+ini_set('session.cookie_httponly', 1);
+// ini_set('session.cookie_secure', 1); // Uncomment if using HTTPS
+
 require_once 'db.php';
 
 function findUserByEmail($email) {
     $conn = getDbConnection();
-    $stmt = $conn->prepare("SELECT * FROM users WHERE username = :email LIMIT 1");
+    $stmt = $conn->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
     $stmt->bindValue(':email', $email, PDO::PARAM_STR);
     $stmt->execute();
-
-    return $stmt->fetch(PDO::FETCH_ASSOC); // Returns false if no user found
+    return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-// Redirect if user is already logged in
+// Redirect if logged in
 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
-    header("Location: home.php");
+    header("Location: home");
     exit;
 }
 
-$error = ''; // Initialize error variable for display
+$error = '';
 
-// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'] ?? '';
+    $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
     $password = $_POST['password'] ?? '';
 
-    // Get user record from DB
     $user = findUserByEmail($email);
 
     if ($user) {
-        // Check password
-        if ($password == $user['password']) {
-            // Valid credentials
+        // Hybrid check for plaintext or hashed passwords
+        if ($password === $user['password'] || password_verify($password, $user['password'])) {
+            // Migrate plaintext password to hash if needed
+            if (password_needs_rehash($user['password'], PASSWORD_DEFAULT)) {
+                $newHash = password_hash($password, PASSWORD_DEFAULT);
+                // Update database with new hash
+                $conn = getDbConnection();
+                $update = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+                $update->execute([$newHash, $user['id']]);
+            }
+
+            // Set session variables
             $_SESSION['logged_in'] = true;
-            $_SESSION['user_id']   = $user['id'];
-            header("Location: home.php");
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_email'] = $user['email'];
+            
+            // Regenerate session ID on login
+            session_regenerate_id(true);
+            
+            header("Location: home");
             exit;
         } else {
-            $error = "Onjuist wachtwoord."; // Incorrect password
-           
+            $error = "Onjuist wachtwoord.";
         }
     } else {
-        $error = "Gebruiker niet gevonden."; // User not found
+        $error = "Gebruiker niet gevonden.";
     }
 }
+// ... rest of your HTML remains the same ...
 
 
 ?>
@@ -53,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8" />
   <title>Horlogic | Inloggen</title>
-  <link rel="stylesheet" type="text/css" href="/../../../css/globals.css">
+  <link rel="stylesheet" type="text/css" href="/css/globals.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <style>
     /* Full-page background */
@@ -180,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="error"><?php echo $error; ?></div>
     <?php endif; ?>
 
-    <form method="POST" action="/private/views/pages/login.php">
+    <form method="POST" action="/login">
       <div class="form-group">
         <label for="email">E-mailadres <span style="color:red">*</span></label>
         <input 

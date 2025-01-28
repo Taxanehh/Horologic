@@ -1,6 +1,8 @@
 <?php
 // Start the session
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Destroy the session
 session_unset();

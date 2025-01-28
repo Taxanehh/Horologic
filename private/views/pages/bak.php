@@ -5,14 +5,13 @@ if (!($_SESSION['logged_in'])) {
   header("Location: /private/views/pages/login.php");
   exit;
 }
-
-include __DIR__ . '/../layout/header.php';?>
+?>
 
 <!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <link rel="stylesheet" type="text/css" href="/../../../css/globals.css">
+  <link rel="stylesheet" type="text/css" href="/../../../public/css/globals.css">
   <title>Bak | Horlogic</title>
   <style>
     html, body {

@@ -1,12 +1,12 @@
-<?php include __DIR__ . '/../layout/header.php';
+<?php require_once __DIR__ . '/../layout/header.php';
 
-
-session_start();
+require_once __DIR__ . '/../../controllers/AuthController.php';
+AuthController::checkAuth();
 
 // Check if the user is logged in
 if (!($_SESSION['logged_in'])) {
     // Redirect to login page if not logged in
-    header("Location: /private/views/pages/login.php");
+    header("Location: /login");
     exit;
 }
 
