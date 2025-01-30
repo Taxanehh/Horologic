@@ -6,7 +6,7 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow:hidden;
+    scrollbar-width: thin;
     font-family: 'Open Sans', sans-serif;
   }
 
@@ -293,4 +293,115 @@ min-height: 100vh;
   .dropdown a:hover {
     background-color: #f1f1f1;
   }
-  
+
+  .horloge-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.horloge-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #fff;
+    border: 2px solid rgba(0, 0, 0, 0.125);
+    border-left-width: 5px;
+    border-radius: 4px;
+    transition: border-color 0.15s;
+}
+
+.horloge-left {
+    display: flex;
+    flex-direction: column;
+    font-weight: bold;
+}
+
+.horloge-number {
+    font-size: 1rem;
+    color: #333;
+}
+
+.horloge-brand {
+    font-size: 0.9rem;
+    color: #777;
+}
+
+.horloge-details {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.horloge-tag {
+    font-weight: bold;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+.tag-label {
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+/* Color Styling Based on Tag */
+.nieuw-box {
+    border-left-color: #fffd54;
+}
+
+.repa-box {
+    border-left-color: #92fa5b;
+}
+
+.annu-box {
+    border-left-color: #ea3223;
+}
+
+.leverancier-box {
+    border-left-color: #8d43f6;
+}
+
+.wacht-box {
+    border-left-color: #cadfb8;
+}
+
+.beoordeel-box {
+    border-left-color: #91fcfd;
+}
+
+.kosten-box {
+    border-left-color: #dfdfdf;
+}
+
+.toest-box {
+    border-left-color: #000;
+}
+
+.inspec-box {
+    border-left-color: #f1a0f9;
+}
+
+.bewerk-box {
+    border-left-color: #f19d38;
+}
+
+.error-message {
+  color: #dc3545;
+  padding: 12px;
+  margin: 0 auto 1.5rem;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  width: 80%;
+  text-align: center;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

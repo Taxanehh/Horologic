@@ -9,6 +9,8 @@ class AuthController {
             session_start();
         }
         if (!isset($_SESSION['user_id'])) {
+            $_SESSION['login_error'] = "Please log in to continue";
+            session_write_close();
             header("Location: /login");
             exit;
         }
@@ -23,8 +25,6 @@ class AuthController {
         // Enhanced session security
         session_regenerate_id(true);
 
-        $error = '';
-
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
             $password = $_POST['password'] ?? '';
@@ -37,27 +37,40 @@ class AuthController {
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($user) {
-                // Verify password
-                if (password_verify($password, $user['password'])) {
+                // Hybrid check for plaintext/hashed passwords
+                if ($password === $user['password'] || password_verify($password, $user['password'])) {
+                    // Password migration logic
+                    if (password_needs_rehash($user['password'], PASSWORD_DEFAULT)) {
+                        $newHash = password_hash($password, PASSWORD_DEFAULT);
+                        $update = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+                        $update->execute([$newHash, $user['id']]);
+                    }
+
                     // Set session variables
                     $_SESSION['logged_in'] = true;
                     $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['username'] = $user['username'];
                     $_SESSION['email'] = $user['email'];
-
-                    // Redirect to the home page
-                    header("Location: /");
+                    
+                    // Clear errors and redirect
+                    unset($_SESSION['login_error']);
+                    header("Location: /home");
                     exit;
-                } else {
-                    $error = "Onjuist wachtwoord.";
                 }
             } else {
-                $error = "Gebruiker niet gevonden.";
+                // Set error and redirect (for both invalid user and wrong password)
+                $_SESSION['login_error'] = "Onjuiste email of wachtwoord.";
+                session_write_close(); // Ensure session is saved before redirect
+                header("Location: /login");
+                exit;
             }
+
+            
+            header("Location: /login");
+            exit;
         }
 
-        // Redirect back to login page with an error message
-        header("Location: /login?error=" . urlencode($error));
+        // Non-POST requests get redirected
+        header("Location: /login");
         exit;
     }
 
@@ -68,8 +81,6 @@ class AuthController {
         }
         session_unset();
         session_destroy();
-
-        // Redirect to login page
         header("Location: /login");
         exit;
     }

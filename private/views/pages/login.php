@@ -1,12 +1,22 @@
 <?php
+ob_start();
 if (session_status() === PHP_SESSION_NONE) {
   session_start();
 }
 
-// Enhanced session security
-session_regenerate_id(true);
-ini_set('session.cookie_httponly', 1);
-// ini_set('session.cookie_secure', 1); // Uncomment if using HTTPS
+$error = '';
+$emailValue = '';
+
+// Retrieve session error and email
+if (isset($_SESSION['login_error'])) {
+    $error = $_SESSION['login_error'];
+    unset($_SESSION['login_error']);
+}
+
+if (isset($_SESSION['old_email'])) {
+    $emailValue = $_SESSION['old_email'];
+    unset($_SESSION['old_email']);
+}
 
 require_once 'db.php';
 
@@ -20,11 +30,9 @@ function findUserByEmail($email) {
 
 // Redirect if logged in
 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
-    header("Location: home");
+    header("Location: /home");
     exit;
 }
-
-$error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
@@ -33,12 +41,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = findUserByEmail($email);
 
     if ($user) {
-        // Hybrid check for plaintext or hashed passwords
-        if ($password === $user['password'] || password_verify($password, $user['password'])) {
-            // Migrate plaintext password to hash if needed
-            if (password_needs_rehash($user['password'], PASSWORD_DEFAULT)) {
+        $passwordIsValid = false;
+        $needsRehash = false;
+
+        // Check if password is correct (hashed or plaintext)
+        if (password_verify($password, $user['password'])) {
+            $passwordIsValid = true;
+            $needsRehash = password_needs_rehash($user['password'], PASSWORD_DEFAULT);
+        } elseif ($password === $user['password']) {
+            // Handle plaintext password (upgrade to hash)
+            $passwordIsValid = true;
+            $needsRehash = true;
+        }
+
+        if ($passwordIsValid) {
+            // Update password hash if necessary
+            if ($needsRehash) {
                 $newHash = password_hash($password, PASSWORD_DEFAULT);
-                // Update database with new hash
                 $conn = getDbConnection();
                 $update = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
                 $update->execute([$newHash, $user['id']]);
@@ -48,23 +67,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['logged_in'] = true;
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_email'] = $user['email'];
-            
-            // Regenerate session ID on login
+
             session_regenerate_id(true);
-            
-            header("Location: home");
+
+            header("Location: /home");
             exit;
-        } else {
-            $error = "Onjuist wachtwoord.";
         }
-    } else {
-        $error = "Gebruiker niet gevonden.";
     }
+
+    // If invalid credentials, set session error and redirect
+    $_SESSION['login_error'] = "Onjuiste email of wachtwoord.";
+    $_SESSION['old_email'] = $email;
+    header("Location: /login");
+    exit;
 }
-// ... rest of your HTML remains the same ...
-
-
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="nl">
@@ -76,6 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <style>
     /* Full-page background */
     body {
+      overflow: hidden;
       margin: 0;
       padding: 0;
       font-family: 'Open Sans', sans-serif;
@@ -194,10 +214,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <img src="/../../../img/logo.png" alt="Weisz Group Logo" style="width: 100px; height: 115.083px;"  />
     </div>
 
-    <?php if (!empty($error)): ?>
-      <div class="error"><?php echo $error; ?></div>
-    <?php endif; ?>
-
+      <?php if (isset($error) && $error !== ''): ?>
+          <div class="error-message" style="color: red; margin-bottom: 1rem; padding: 10px; background: #ffeeee; border: 1px solid #ffcccc; border-radius: 4px;">
+              <strong>⚠️ Fout:</strong> <?php echo htmlspecialchars($error); ?>
+          </div>
+      <?php else: ?>
+      <?php endif; ?>
+    
     <form method="POST" action="/login">
       <div class="form-group">
         <label for="email">E-mailadres <span style="color:red">*</span></label>
