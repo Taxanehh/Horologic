@@ -25,13 +25,14 @@ switch ($request) {
         AuthController::checkAuth();
         require '../private/views/pages/home.php';
         break;
+    case preg_match('#^/edit/(\d+)$#', $request, $matches) ? $request : false:
+        $_GET['url'] = $request; // Pass the full URL to the edit page
+        $reparatieNummer = $matches[1];
+        require '../private/views/pages/edit_item.php';
+        break;
     case '/reparaties':
         AuthController::checkAuth();
         require '../private/views/pages/reparaties.php';
-        break;
-    case '/bak':
-        AuthController::checkAuth();
-        require '../private/views/pages/bak.php';
         break;
     case '/complete':
         AuthController::checkAuth();

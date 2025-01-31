@@ -26,82 +26,31 @@ function getStatusCount($tag) {
     return $stmt->fetchColumn();
 }
 
+$statusTags = [
+  "Nieuw" => "nieuw-box",
+  "In bewerking" => "bewerk-box",
+  "Inspectie" => "inspec-box",
+  "Toestemming" => "toest-box",
+  "Kosten akkoord" => "kosten-box",
+  "Beoordelen" => "beoordeel-box",
+  "In de wacht" => "wacht-box",
+  "Leverancier" => "leverancier-box",
+  "Geannuleerd" => "annu-box",
+  "Reparatie klaar" => "repa-box",
+  "Teruggestuurd" => "terug-box",
+  "Alle statussen" => "alle-box"
+];
 ?>
 <main style="padding: 1rem;">
   <!-- Top status boxes (Nieuw, In bewerking, Inspectie, etc.) -->
   <div class="status-boxes" style="display: flex; flex-wrap: wrap; gap: 0 2rem; margin-bottom: 1rem;">
   
-    <!-- Nieuw -->
-    <div class="status-box nieuw-box">
-      <div class="status-title">Nieuw</div>
-      <div class="status-count"><?php echo getStatusCount('Nieuw'); ?></div>
-    </div>
-
-    <!-- In bewerking -->
-    <div class="status-box nieuw-box bewerk-box">
-      <div class="status-title">In bewerking</div>
-      <div class="status-count"><?php echo getStatusCount('In bewerking'); ?></div>
-    </div>
-
-    <!-- Inspectie -->
-    <div class="status-box nieuw-box inspec-box">
-      <div class="status-title">Inspectie</div>
-      <div class="status-count"><?php echo getStatusCount('Inspectie'); ?></div>
-    </div>
-
-    <!-- Toestemming -->
-    <div class="status-box nieuw-box toest-box">
-      <div class="status-title">Toestemming</div>
-      <div class="status-count"><?php echo getStatusCount('Toestemming'); ?></div>
-    </div>
-
-    <!-- Kosten akkoord -->
-    <div class="status-box nieuw-box kosten-box">
-      <div class="status-title">Kosten akkoord</div>
-      <div class="status-count"><?php echo getStatusCount('Kosten akkoord'); ?></div>
-    </div>
-
-    <!-- Beoordelen -->
-    <div class="status-box nieuw-box beoordeel-box">
-      <div class="status-title">Beoordelen</div>
-      <div class="status-count"><?php echo getStatusCount('Beoordelen'); ?></div>
-    </div>
-
-    <!-- In de wacht -->
-    <div class="status-box nieuw-box wacht-box">
-      <div class="status-title">In de wacht</div>
-      <div class="status-count"><?php echo getStatusCount('In de wacht'); ?></div>
-    </div>
-
-    <!-- Leverancier -->
-    <div class="status-box nieuw-box leverancier-box">
-      <div class="status-title">Leverancier</div>
-      <div class="status-count"><?php echo getStatusCount('Leverancier'); ?></div>
-    </div>
-
-    <!-- Geannuleerd -->
-    <div class="status-box nieuw-box annu-box">
-      <div class="status-title">Geannuleerd</div>
-      <div class="status-count"><?php echo getStatusCount('Geannuleerd'); ?></div>
-    </div>
-
-    <!-- Reparatie klaar -->
-    <div class="status-box nieuw-box repa-box">
-      <div class="status-title">Reparatie klaar</div>
-      <div class="status-count"><?php echo getStatusCount('Reparatie klaar'); ?></div>
-    </div>
-
-    <!-- Teruggestuurd -->
-    <div class="status-box nieuw-box terug-box">
-      <div class="status-title">Teruggestuurd</div>
-      <div class="status-count"><?php echo getStatusCount('Teruggestuurd'); ?></div>
-    </div>
-
-    <!-- Alle statussen -->
-    <div class="status-box nieuw-box alle-box">
-      <div class="status-title">Alle statussen</div>
-      <div class="status-count"><?php echo getStatusCount('Alle statussen'); ?></div>
-    </div>
+    <?php foreach ($statusTags as $status => $class): ?>
+        <div class="status-box <?= $class ?>" onclick="filterWatches('<?= $class ?>')">
+            <div class="status-title"><?= htmlspecialchars($status) ?></div>
+            <div class="status-count"><?= getStatusCount($status) ?></div>
+        </div>
+    <?php endforeach; ?>
 
 
   <!-- Row with "Toevoegen" button, search bar, filter buttons -->
@@ -109,7 +58,8 @@ function getStatusCount($tag) {
     display: flex; 
     gap: 0.5rem;
     margin-bottom: 1rem;
-    padding-left: 1rem;  /* or margin-left: 1rem; */
+    margin-top: 0.5rem;
+    padding-left: 0rem;  /* or margin-left: 1rem; */
   ">
     <!-- Left side: Toevoegen button -->
     <button 
@@ -123,7 +73,7 @@ function getStatusCount($tag) {
       <input 
         type="text" 
         placeholder="Zoek naar..." 
-        style="padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; width: 200px;"
+        style="padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; width: 450px;"
       />
       <button 
         style="background-color: #153c63; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; font-weight: 300;"
@@ -165,20 +115,12 @@ function getStatusCount($tag) {
       <input type="text" placeholder="Serienummer..." />
       <i class="fa fa-arrows-alt-v"></i>
     </div>
-    <div class="filter-item">
-      <input type="text" placeholder="Reparatienummer..." />
-      <i class="fa fa-arrows-alt-v"></i>
-    </div>
-    <div class="filter-item">
-      <input type="text" placeholder="Horlogemaker..." />
-      <i class="fa fa-arrows-alt-v"></i>
-    </div>
   </div>
 
   <?php
   // Fetch data from the database
   $conn = getDbConnection();
-  $stmt = $conn->prepare("SELECT * FROM horloges");
+  $stmt = $conn->prepare("SELECT * FROM horloges ORDER BY ReparatieNummer DESC");
   $stmt->execute();
   $horloges = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -203,22 +145,61 @@ function getStatusCount($tag) {
   <div class="horloge-list">
       <?php foreach ($horloges as $horloge): ?>
           <?php $tag = $horloge['Tag'] ?? ''; ?>
-          <div class="horloge-item <?= $tagClasses[$tag] ?? '' ?>">
-              <div class="horloge-left">
-                  <span class="horloge-number">#<?= htmlspecialchars($horloge['ReparatieNummer']) ?></span>
-                  <span class="horloge-brand"><?= htmlspecialchars($horloge['Merk']) ?></span>
+          <div class="horloge-item <?= $tagClasses[$tag] ?? '' ?>" onclick="location.href='/edit/<?= $horloge['ReparatieNummer'] ?>'">
+              
+              <!-- ReparatieNummer + created_at -->
+              <div class="horloge-repair">
+                  <span class="horloge-number" style="font-weight: bold;">#<?= htmlspecialchars($horloge['ReparatieNummer']) ?></span>
+                  <span class="horloge-date" style="font-weight: lighter; color: #808080;"><?= htmlspecialchars($horloge['created_at'] ?? 'Onbekend') ?></span>
               </div>
-              <div class="horloge-details">
-                  <span class="horloge-model"><?= htmlspecialchars($horloge['Model']) ?></span>
-                  <span class="horloge-serial">SN: <?= htmlspecialchars($horloge['Serienummer']) ?></span>
-                  <span class="horloge-company"><?= htmlspecialchars($horloge['Bedrijfsnaam']) ?></span>
+
+              <!-- Bedrijfsnaam + Adres -->
+              <div class="horloge-company">
+                  <span><?= htmlspecialchars($horloge['Bedrijfsnaam']) ?></span>
+                  <span><?= htmlspecialchars($horloge['Adres']) ?></span>
               </div>
+
+              <!-- Merk -->
+              <div class="horloge-brand">
+                  <span><?= htmlspecialchars($horloge['Merk']) ?></span>
+              </div>
+
+              <!-- Model -->
+              <div class="horloge-model">
+                  <span><?= htmlspecialchars($horloge['Model']) ?></span>
+              </div>
+
+              <!-- Serienummer -->
+              <div class="horloge-serial">
+                  <span>SN: <?= htmlspecialchars($horloge['Serienummer']) ?></span>
+              </div>
+
+              <!-- Tag (Color matches predefined class) -->
               <div class="horloge-tag">
-                  <span class="tag-label"><?= htmlspecialchars($tag) ?></span>
+                  <span class="tag-label <?= $tagClasses[$tag] ?? '' ?>"><?= htmlspecialchars($tag) ?></span>
               </div>
+
           </div>
       <?php endforeach; ?>
   </div>
+
+
+  <!-- JavaScript for Filtering -->
+<script>
+  function filterWatches(tagClass) {
+    let watches = document.querySelectorAll('.horloge-item');
+
+    watches.forEach(watch => {
+      if (tagClass === 'alle-box') {
+        watch.style.display = 'flex'; // Show all items
+      } else if (watch.classList.contains(tagClass)) {
+        watch.style.display = 'flex'; // Show matching items
+      } else {
+        watch.style.display = 'none'; // Hide non-matching items
+      }
+    });
+  }
+</script>
 </main>
 
 </body>
