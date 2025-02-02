@@ -16,9 +16,8 @@ min-height: 100vh;
 
 .login-container .logo img {
     width: 100px;
-    height: 115.083px;
-    object-fit: cover;
-    max-height:100%;
+    height: 150.083px;
+    max-height:150px;
   }
 
 .logo2 {
@@ -531,3 +530,182 @@ min-height: 100vh;
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Scoped login-page styles using body.login-page as a prefix */
+
+/* Full-page background styling for the login page */
+body.login-page {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  font-family: 'Open Sans', sans-serif;
+  background: 
+    linear-gradient(
+      135deg,
+      rgba(46, 52, 81, 0.4),
+      rgba(52, 40, 104, 0.95)
+    ),
+    url("/../../../img/login-bg-2.jpg") no-repeat center center fixed;
+  background-size: cover;
+  background-blend-mode: normal;
+}
+
+/* Login container panel styling */
+body.login-page .login-container {
+  background: rgba(255, 255, 255, 0.95);
+  width: 320px;
+  margin: 5% auto;
+  padding: 2rem;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  height: 525px;
+}
+
+/* Logo styling within login page */
+body.login-page .login-container .logo img {
+  max-height: 100px;
+  margin-bottom: 1rem;
+}
+
+body.login-page form{
+  margin-top: 20px;
+}
+
+/* Form group styling for login page */
+body.login-page .login-container .form-group {
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+body.login-page .login-container label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* Input styling for login form */
+body.login-page .login-container input[type="text"],
+body.login-page .login-container input[type="email"],
+body.login-page .login-container input[type="password"] {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: #666; /* A darker gray for typed text */
+}
+
+/* Checkbox group styling within login page */
+body.login-page .login-container .checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 3rem;
+  position: relative;
+  bottom: -10px;
+}
+
+body.login-page .login-container .checkbox-group input[type="checkbox"] {
+  margin: 0; /* Remove extra default margin */
+}
+
+body.login-page .login-container .checkbox-group label {
+  margin: 0; /* Ensure proper alignment */
+}
+
+/* Button styling within login page only */
+body.login-page .login-container button {
+  background-color: #194978;
+  color: #fff;
+  border: none;
+  padding: 0.55rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 100;
+}
+
+body.login-page .login-container button:hover {
+  background-color: #153c63;
+}
+
+/* Error message styling on the login page */
+body.login-page .login-container .error,
+body.login-page .login-container .error-message {
+  color: red;
+  margin-bottom: 1rem;
+}
+
+/* Forgot password link styling within login page */
+body.login-page .login-container .forgot-password {
+  margin-top: 4rem;
+  display: inline-block;
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: #555;
+}
+
+body.login-page .login-container .forgot-password:hover {
+  text-decoration: underline;
+}
+
+/* Scoped Dashboard Page Styles (applies only when the page has body.dashboard-page) */
+
+/* Main container padding */
+body.dashboard-page main {
+  padding: 1rem;
+}
+
+/* Top status boxes container */
+body.dashboard-page .status-boxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Actions row (buttons, search bar, etc.) */
+body.dashboard-page .actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+  padding-left: 0;
+}
+
+/* "Toevoegen" button styling */
+body.dashboard-page .btn-add {
+  background-color: #28b97b;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+}
+
+/* Search input styling */
+body.dashboard-page .search-input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 450px;
+}
+
+/* Search and Filter buttons styling (shared styles) */
+body.dashboard-page .btn-search {
+  background-color: #153c63;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: 300;
+}
+
+/* Horloge List Text Styling */
+body.dashboard-page .horloge-number {
+  font-weight: bold;
+}
+
+body.dashboard-page .horloge-date {
+  font-weight: lighter;
+  color: #808080;
+}
+

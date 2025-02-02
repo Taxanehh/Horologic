@@ -19,6 +19,7 @@ if (isset($_SESSION['user_id'])) {
   <!-- Example: link to an external CSS file for styling -->
   <link rel="stylesheet" href="/css/globals.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="icon" type="image/x-icon" href="/img/favicon.ico">
   <style>
     /* Quick inline CSS just to demonstrate structure; 
        ideally, move this to css/styles.css */
@@ -53,6 +54,10 @@ if (isset($_SESSION['user_id'])) {
       font-weight: bold;
       font-size: 1.2rem;
     }
+
+    .logo2 {
+      margin-left: 20px;
+    }
     nav ul {
       list-style: none;
       display: flex;
@@ -86,7 +91,7 @@ if (isset($_SESSION['user_id'])) {
   <!-- Left: Logo or Brand -->
   <div class="logo2">
     <!-- If you have a logo, place it here -->
-    <img src="/img/logo2.png" alt="Horlogic Logo" />
+    <img src="/img/horologic.png" alt="Horologic Logo" />
   </div>
 
   <!-- Center: Navigation links -->
