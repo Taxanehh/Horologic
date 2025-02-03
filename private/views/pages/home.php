@@ -52,7 +52,340 @@ $statusTags = [
     'Teruggestuurd'    => ['label' => 'Returned',        'class' => 'terug-box'],
     'Alle statussen'   => ['label' => 'All statuses',    'class' => 'alle-box']
 ];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  // Check if this is the "Add New" form
+  if (isset($_POST['add_new'])) {
+      // Collect form fields
+      $bedrijfsnaam   = $_POST['Bedrijfsnaam']       ?? '';
+      $adres          = $_POST['Adres']             ?? '';
+      $address         = $_POST['Address']             ?? '';
+      $merk           = $_POST['Merk']              ?? '';
+      $model          = $_POST['Model']             ?? '';
+      $serienummer    = $_POST['Serienummer']       ?? '';
+      $debit          = $_POST['Debit']             ?? '';
+      $repairCustomer = $_POST['RepairCustomer']    ?? '';
+      $maxCosts       = $_POST['MaxCosts']          ?? 0;
+      $warrenty       = $_POST['Warrenty']          ?? null;
+      $warrentyBool   = isset($_POST['WarrentyBool']) ? 1 : 0;
+      $emailSent      = isset($_POST['EmailSent'])    ? 1 : 0;
+      $emailSentOn    = !empty($_POST['EmailSentOn']) ? $_POST['EmailSentOn'] : null;
+      $klacht         = $_POST['Klacht']            ?? '';
+      $opmerkingen    = $_POST['Opmerkingen']       ?? '';
+
+      // Optionally set a default status/tag for new entries:
+      $defaultTag = 'Nieuw'; // Or something else, e.g. 'In bewerking'
+
+      // Prepare INSERT statement
+      $insertStmt = $conn->prepare("
+          INSERT INTO horloges
+              (Bedrijfsnaam, Adres, Address, Merk, Model, Serienummer,
+               Debit, RepairCustomer, MaxCosts, WarrentyBool,
+               Warrenty, EmailSent, EmailSentOn, Klacht,
+               Opmerkingen, Tag, created_at)
+          VALUES
+              (:bedrijfsnaam, :adres, :address,  :merk, :model, :serienummer,
+               :debit, :repairCustomer, :maxCosts, :warrentyBool,
+               :warrenty, :emailSent, :emailSentOn, :klacht,
+               :opmerkingen, :tag, NOW())
+      ");
+
+      // Bind parameters
+      $insertSuccess = $insertStmt->execute([
+          ':bedrijfsnaam'   => $bedrijfsnaam,
+          ':adres'          => $adres,
+          ':address'          => $address,
+          ':merk'           => $merk,
+          ':model'          => $model,
+          ':serienummer'    => $serienummer,
+          ':debit'          => $debit,
+          ':repairCustomer' => $repairCustomer,
+          ':maxCosts'       => $maxCosts,
+          ':warrentyBool'   => $warrentyBool,
+          ':warrenty'       => $warrenty,
+          ':emailSent'      => $emailSent,
+          ':emailSentOn'    => $emailSentOn,
+          ':klacht'         => $klacht,
+          ':opmerkingen'    => $opmerkingen,
+          ':tag'            => $defaultTag
+      ]);
+
+      // Check if the INSERT was successful
+      if ($insertSuccess) {
+          $_SESSION['success'] = "New repair entry added successfully.";
+      } else {
+          $_SESSION['error'] = "Error adding new entry.";
+      }
+
+      // Redirect to whichever page shows your list of entries:
+      header("Location: /home");
+      exit;
+  }
+}
 ?>
+
+<style>
+  /* Add Form Backdrop */
+.add-form-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+}
+
+/* Main Add Form Container */
+#addFormContainer {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 2rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    width: 70%;
+    max-width: 800px;
+    z-index: 10000;
+}
+
+/* Form Elements */
+#addFormContainer h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.edit-form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.edit-form-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.edit-form-col label {
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.edit-form-col input[type="text"],
+.edit-form-col input[type="email"],
+.edit-form-col input[type="date"],
+.edit-form-col input[type="number"],
+.edit-form-col textarea {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+.edit-form-col textarea {
+    height: 60px;
+    resize: vertical;
+}
+
+/* Buttons */
+.edit-form-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.save-changes-button {
+    background: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+.save-changes-button:hover {
+    background: #218838;
+}
+
+.cancel-edit-button {
+    background: #e0e0e0;
+    color: #333;
+    border: none;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+.cancel-edit-button:hover {
+    background: #ccc;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-switch label {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.toggle-switch label:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+.toggle-switch input:checked + label {
+    background-color: #4CAF50;
+}
+
+.toggle-switch input:checked + label:before {
+    transform: translateX(26px);
+}
+
+/* Close Button */
+.close-edit-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+}
+
+</style>
+
+<div id="addFormContainer" style="display: none;">
+    <button type="button" class="close-edit-button" onclick="toggleAddForm()">&times;</button>
+    <h2>Add New Repair</h2>
+    
+    <form method="POST" action="">
+        <!-- Hidden input to distinguish between add vs. edit submissions -->
+        <input type="hidden" name="add_new" value="1">
+        
+        <div class="edit-form-row">
+            <div class="edit-form-col">
+                <label for="Bedrijfsnaam_add">Jeweler Name</label>
+                <input type="text" name="Bedrijfsnaam" id="Bedrijfsnaam_add" value="">
+            </div>
+            <div class="edit-form-col">
+                <label for="Adres_add">Email Address</label>
+                <input type="email" name="Adres" id="Adres_add" value="">
+            </div>
+        </div>
+
+        <div class="edit-form-row">
+            <div class="edit-form-col">
+                <label for="Merk_add">Brand</label>
+                <input type="text" name="Merk" id="Merk_add" value="">
+            </div>
+            <div class="edit-form-col">
+                <label for="Model_add">Model</label>
+                <input type="text" name="Model" id="Model_add" value="">
+            </div>
+        </div>
+
+        <div class="edit-form-row">
+            <div class="edit-form-col">
+                <label for="Serienummer_add">Serial Number</label>
+                <input type="text" name="Serienummer" id="Serienummer_add" value="">
+            </div>
+            <div class="edit-form-col">
+                <label for="Warrenty_add">Warranty Date</label>
+                <input type="date" name="Warrenty" id="Warrenty_add" value="">
+            </div>
+        </div>
+
+        <div class="edit-form-row">
+            <div class="edit-form-col">
+                <label for="Klacht_add">Customer Complaint</label>
+                <textarea name="Klacht" id="Klacht_add" rows="4"></textarea>
+            </div>
+            <div class="edit-form-col">
+                <label for="Opmerkingen_add">Internal Notes</label>
+                <textarea name="Opmerkingen" id="Opmerkingen_add" rows="4"></textarea>
+            </div>
+        </div>
+
+        <div class="edit-form-row">
+            <div class="edit-form-col">
+                <label for="Debit_add">Debit Number</label>
+                <input type="text" name="Debit" id="Debit_add" value="">
+            </div>
+            <div class="edit-form-col">
+                <label for="RepairCustomer_add">Repair Customer Number</label>
+                <input type="text" name="RepairCustomer" id="RepairCustomer_add" value="">
+            </div>
+        </div>
+
+        <div class="edit-form-row">
+            <div class="edit-form-col">
+                <label for="MaxCosts_add">Max Costs (€)</label>
+                <input type="number" name="MaxCosts" id="MaxCosts_add" step="0.01" value="0.00">
+            </div>
+            <div class="edit-form-col">
+                <label>Under Warranty?</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" name="WarrentyBool" id="WarrentyBool_add">
+                    <label for="WarrentyBool_add"></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="edit-form-row">
+            <div class="edit-form-col">
+                <label>Email Sent</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" name="EmailSent" id="EmailSent_add" onchange="toggleEmailDateAdd(this)">
+                    <label for="EmailSent_add"></label>
+                </div>
+            </div>
+            <div class="edit-form-col" id="emailDateContainerAdd" style="display: none;">
+                <label for="EmailSentOn_add">Email Sent Date</label>
+                <input type="date" name="EmailSentOn" id="EmailSentOn_add" value="">
+            </div>
+        </div>
+
+        <div class="edit-form-buttons">
+            <button type="button" class="cancel-edit-button" onclick="toggleAddForm()">Cancel</button>
+            <button type="submit" class="save-changes-button">Save New Entry</button>
+        </div>
+    </form>
+</div>
+
 <main style="padding: 1rem;">
 
   <!-- Top status boxes -->
@@ -83,6 +416,7 @@ $statusTags = [
     <!-- Left side: Add button -->
     <button 
       style="background-color: #28b97b; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px;"
+      onclick="toggleAddForm()"
     >
       <i class="fa fa-check-circle"></i> Add
     </button>
@@ -113,30 +447,31 @@ $statusTags = [
   <!-- Table-like filter row (just placeholders, no actual filter code) -->
   <div class="filter-box">
     <div class="filter-item">
-      <input type="text" placeholder="Repair number..." />
+      <input type="text" id="repair-filter" placeholder="Repair number..." />
       <i class="fa fa-arrows-alt-v"></i>
     </div>
     <div class="filter-item">
-      <input type="text" placeholder="Jeweler..." />
+      <input type="text" id="jeweler-filter" placeholder="Jeweler..." />
       <i class="fa fa-arrows-alt-v"></i>
     </div>
     <div class="filter-item">
-      <input type="text" placeholder="City..." />
+      <input type="text" id="city-filter" placeholder="City..." />
       <i class="fa fa-arrows-alt-v"></i>
     </div>
     <div class="filter-item">
-      <input type="text" placeholder="Brand..." />
+      <input type="text" id="brand-filter" placeholder="Brand..." />
       <i class="fa fa-arrows-alt-v"></i>
     </div>
     <div class="filter-item">
-      <input type="text" placeholder="Model..." />
+      <input type="text" id="model-filter" placeholder="Model..." />
       <i class="fa fa-arrows-alt-v"></i>
     </div>
     <div class="filter-item">
-      <input type="text" placeholder="Serial number..." />
+      <input type="text" id="serial-filter" placeholder="Serial number..." />
       <i class="fa fa-arrows-alt-v"></i>
     </div>
   </div>
+
 
   <?php
   // STILL use 'horloges' and 'ReparatieNummer' for the actual DB query
@@ -195,6 +530,7 @@ $statusTags = [
               <div class="horloge-company">
                   <span><?= htmlspecialchars($horloge['Bedrijfsnaam']) ?></span>
                   <span><?= htmlspecialchars($horloge['Adres']) ?></span>
+                  <span><?= htmlspecialchars($horloge['Address']) ?></span>
               </div>
 
               <!-- Brand -->
@@ -281,6 +617,145 @@ $statusTags = [
 
   // (Optional) If you'd like to filter as the user types:
   // document.getElementById("search-input").addEventListener("keyup", applySearchFilter);
+</script>
+
+<script>
+  function applyFilters() {
+    // 1. Get the global "Search for..." value (lowercase)
+    const globalSearch = document.getElementById("search-input").value.toLowerCase().trim();
+
+    // 2. Get each column filter’s value (lowercase)
+    const repairVal  = document.getElementById("repair-filter").value.toLowerCase().trim();
+    const jewelerVal = document.getElementById("jeweler-filter").value.toLowerCase().trim();
+    const cityVal    = document.getElementById("city-filter").value.toLowerCase().trim();
+    const brandVal   = document.getElementById("brand-filter").value.toLowerCase().trim();
+    const modelVal   = document.getElementById("model-filter").value.toLowerCase().trim();
+    const serialVal  = document.getElementById("serial-filter").value.toLowerCase().trim();
+
+    // 3. Loop over each watch item
+    const watches = document.querySelectorAll(".horloge-item");
+    watches.forEach(watch => {
+      // Grab the relevant text from the watch item, in lowercase
+      // a) For the global search, we can use the entire watch text:
+      const watchText = watch.textContent.toLowerCase();
+
+      // b) For column-specific filters, we can be more targeted:
+      //    1) Repair number is inside ".horloge-repair .horloge-number"
+      const repairNumberEl = watch.querySelector(".horloge-repair .horloge-number");
+      const repairText     = repairNumberEl ? repairNumberEl.textContent.toLowerCase() : "";
+
+      //    2) Jeweler (Bedrijfsnaam) is the first <span> under ".horloge-company"
+      //       City (Adres) is the second <span> under ".horloge-company"
+      const companySpans = watch.querySelectorAll(".horloge-company span");
+      const jewelerText  = companySpans.length > 0 ? companySpans[0].textContent.toLowerCase() : "";
+      const cityText     = companySpans.length > 1 ? companySpans[1].textContent.toLowerCase() : "";
+
+      //    3) Brand
+      const brandEl  = watch.querySelector(".horloge-brand");
+      const brandTxt = brandEl ? brandEl.textContent.toLowerCase() : "";
+
+      //    4) Model
+      const modelEl  = watch.querySelector(".horloge-model");
+      const modelTxt = modelEl ? modelEl.textContent.toLowerCase() : "";
+
+      //    5) Serial Number
+      const serialEl  = watch.querySelector(".horloge-serial");
+      const serialTxt = serialEl ? serialEl.textContent.toLowerCase() : "";
+
+      // Start by assuming this watch matches
+      let isMatch = true;
+
+      // 4. Check the global search filter (if not empty)
+      if (globalSearch && !watchText.includes(globalSearch)) {
+        isMatch = false;
+      }
+
+      // 5. Check each column filter if not empty
+      if (isMatch && repairVal && !repairText.includes(repairVal)) {
+        isMatch = false;
+      }
+      if (isMatch && jewelerVal && !jewelerText.includes(jewelerVal)) {
+        isMatch = false;
+      }
+      if (isMatch && cityVal && !cityText.includes(cityVal)) {
+        isMatch = false;
+      }
+      if (isMatch && brandVal && !brandTxt.includes(brandVal)) {
+        isMatch = false;
+      }
+      if (isMatch && modelVal && !modelTxt.includes(modelVal)) {
+        isMatch = false;
+      }
+      if (isMatch && serialVal && !serialTxt.includes(serialVal)) {
+        isMatch = false;
+      }
+
+      // 6. Finally, show/hide based on `isMatch`
+      watch.style.display = isMatch ? "flex" : "none";
+    });
+  }
+
+  // Clears all filters (global and column-based) and shows everything
+  function removeAllFilters() {
+    document.getElementById("search-input").value    = "";
+    document.getElementById("repair-filter").value   = "";
+    document.getElementById("jeweler-filter").value  = "";
+    document.getElementById("city-filter").value     = "";
+    document.getElementById("brand-filter").value    = "";
+    document.getElementById("model-filter").value    = "";
+    document.getElementById("serial-filter").value   = "";
+
+    // Show all items
+    const watches = document.querySelectorAll(".horloge-item");
+    watches.forEach(watch => {
+      watch.style.display = "flex";
+    });
+  }
+
+  // Attach your existing "Filter" / "Remove filter" buttons
+  document.getElementById("filter-button").addEventListener("click", applyFilters);
+  document.getElementById("remove-filter-button").addEventListener("click", removeAllFilters);
+
+  // For the column filters, we only filter WHEN the user presses Enter
+  const columnInputs = [
+    "repair-filter", "jeweler-filter", "city-filter",
+    "brand-filter", "model-filter", "serial-filter"
+  ];
+
+  columnInputs.forEach(id => {
+    const inputEl = document.getElementById(id);
+    inputEl.addEventListener("keypress", event => {
+      if (event.key === "Enter") {
+        applyFilters();
+      }
+    });
+  });
+
+  // (Optional) If you’d also like "Search for..." to filter immediately on Enter:
+  // document.getElementById("search-input").addEventListener("keypress", event => {
+  //   if (event.key === "Enter") {
+  //     applyFilters();
+  //   }
+  // });
+</script>
+
+<script>
+  function toggleAddForm() {
+    const addFormContainer = document.getElementById("addFormContainer");
+    if (addFormContainer.style.display === "none" || addFormContainer.style.display === "") {
+      addFormContainer.style.display = "block";
+    } else {
+      addFormContainer.style.display = "none";
+    }
+  }
+
+  // If you want an "Add" button to show this form:
+  // <button onclick="toggleAddForm()">Add</button>
+
+  function toggleEmailDateAdd(checkbox) {
+    const container = document.getElementById("emailDateContainerAdd");
+    container.style.display = checkbox.checked ? "block" : "none";
+  }
 </script>
 
 </main>
