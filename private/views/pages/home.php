@@ -377,6 +377,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label for="EmailSentOn_add">Email Sent Date</label>
                 <input type="date" name="EmailSentOn" id="EmailSentOn_add" value="">
             </div>
+            <div class="edit-form-row">
+                <div class="edit-form-col">
+                    <label for="Address_add">Address (Street, Postal Code, City)</label>
+                    <textarea name="Address" id="Address_add" rows="2" placeholder="Enter full address..."></textarea>
+                </div>
+            </div>
         </div>
 
         <div class="edit-form-buttons">
@@ -648,7 +654,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       //       City (Adres) is the second <span> under ".horloge-company"
       const companySpans = watch.querySelectorAll(".horloge-company span");
       const jewelerText  = companySpans.length > 0 ? companySpans[0].textContent.toLowerCase() : "";
-      const cityText     = companySpans.length > 1 ? companySpans[1].textContent.toLowerCase() : "";
+      const cityText     = companySpans.length > 2 ? companySpans[2].textContent.toLowerCase() : "";
 
       //    3) Brand
       const brandEl  = watch.querySelector(".horloge-brand");

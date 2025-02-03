@@ -3,6 +3,12 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Common activity types
+define('ACT_STATUS', 'status_change');
+define('ACT_EDIT', 'edit');
+define('ACT_IMAGE', 'image_upload');
+define('ACT_DELETE', 'delete');
+
 // ... Existing headers to prevent caching ...
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
@@ -70,10 +76,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $newStatus = $_POST['new_status'];
         $updateStmt = $conn->prepare("UPDATE horloges SET Tag = ? WHERE ReparatieNummer = ?");
         if ($updateStmt->execute([$newStatus, $reparatieNummer])) {
+            $oldStatus = $item['Tag'];
+            logActivity($conn, $reparatieNummer, ACT_STATUS,
+                "Status changed from $oldStatus to $newStatus");
             $_SESSION['success'] = "Status updated to $newStatus";
         } else {
             $_SESSION['error'] = "Error updating status";
         }
+        header("Location: /edit/" . $reparatieNummer);
+        exit;
+    }
+    if (isset($_POST['product_action'])) {
+        $productId = $_POST['product_id'] ?? null;
+        $productName = $_POST['product_name'] ?? '';
+        $amount = (int)$_POST['amount'] ?? 1;
+        $price = (float)$_POST['price'] ?? 0;
+
+        if (!empty($productName) && $amount > 0 && $price >= 0) {
+            if ($_POST['product_action'] === 'add') {
+                $stmt = $conn->prepare("INSERT INTO repair_products 
+                    (reparatie_nummer, product_name, amount, price)
+                    VALUES (?, ?, ?, ?)");
+                $stmt->execute([$reparatieNummer, $productName, $amount, $price]);
+            } elseif ($_POST['product_action'] === 'edit' && $productId) {
+                $stmt = $conn->prepare("UPDATE repair_products SET
+                    product_name = ?,
+                    amount = ?,
+                    price = ?
+                    WHERE id = ? AND reparatie_nummer = ?");
+                $stmt->execute([$productName, $amount, $price, $productId, $reparatieNummer]);
+            }
+        }
+    }
+    if (isset($_POST['delete_product'])) {
+        $productId = (int)$_POST['delete_product'];
+        $stmt = $conn->prepare("DELETE FROM repair_products 
+            WHERE id = ? AND reparatie_nummer = ?");
+        $stmt->execute([$productId, $reparatieNummer]);
         header("Location: /edit/" . $reparatieNummer);
         exit;
     }
@@ -131,6 +170,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
 
         if ($successUpdate) {
+            logActivity($conn, $reparatieNummer, ACT_EDIT, 
+                "Repair details updated");
             $_SESSION['success'] = "Item updated successfully.";
         } else {
             $_SESSION['error'] = "Error updating item.";
@@ -145,6 +186,8 @@ $warrentyBool = isset($_POST['WarrentyBool']) ? 1 : 0;
 if (isset($_POST['delete'])) {
     $deleteStmt = $conn->prepare("DELETE FROM horloges WHERE ReparatieNummer = ?");
     if ($deleteStmt->execute([$reparatieNummer])) {
+        logActivity($conn, $reparatieNummer, ACT_DELETE, 
+            "Repair entry deleted");
         $_SESSION['success'] = "Entry deleted successfully";
         header("Location: /home");  // Redirect to overview after deletion
         exit;
@@ -153,6 +196,44 @@ if (isset($_POST['delete'])) {
         header("Location: /edit/" . $reparatieNummer);
         exit;
     }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['repair_image'])) {
+    $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/uploads/';
+    $webPath = '/uploads/';
+    if (!file_exists($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    $file = $_FILES['repair_image'];
+    
+    if (in_array($file['type'], $allowedTypes)) {
+        $fileName = uniqid() . '_' . basename($file['name']);
+        $targetPath = $uploadDir . $fileName;
+        
+        if (move_uploaded_file($file['tmp_name'], $uploadDir . $fileName)) {
+            $stmt = $conn->prepare("INSERT INTO repair_images (reparatie_nummer, file_path) VALUES (?, ?)");
+            $stmt->execute([$reparatieNummer, $fileName]);
+            logActivity($conn, $reparatieNummer, ACT_IMAGE, 
+                "Image uploaded: $fileName");
+            $_SESSION['success'] = "Image uploaded successfully!";
+        } else {
+            $_SESSION['error'] = "Error uploading file";
+        }
+    } else {
+        $_SESSION['error'] = "Invalid file type. Only JPG, PNG, and GIF allowed.";
+    }
+    
+    header("Location: /edit/" . $reparatieNummer);
+    exit;
+}
+function logActivity($conn, $repairNumber, $type, $description) {
+    $user = $_SESSION['username'] ?? 'System'; // Adjust based on your auth system
+    $stmt = $conn->prepare("INSERT INTO activity_log 
+        (reparatie_nummer, activity_type, description, user) 
+        VALUES (?, ?, ?, ?)");
+    $stmt->execute([$repairNumber, $type, $description, $user]);
 }
 ?>
 
@@ -675,6 +756,50 @@ if (isset($_POST['delete'])) {
             .toggle-switch input:checked + label:before {
                 transform: translateX(26px);
             }
+
+            .image-gallery img {
+                transition: transform 0.2s;
+                border: 2px solid #ddd;
+            }
+
+            .image-gallery img:hover {
+                transform: scale(1.05);
+                border-color: #4CAF50;
+            }
+
+            #imageUploadModal {
+                background: white;
+                padding: 2rem;
+                border-radius: 8px;
+                box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            }
+
+            #imageUploadModal form {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .activity-list {
+                padding: 0.5rem;
+            }
+
+            .activity-item {
+                padding: 0.8rem;
+                margin: 0.5rem 0;
+                background: #f8f9fa;
+                border-radius: 4px;
+                transition: background 0.2s;
+            }
+
+            .activity-item:hover {
+                background: #f1f1f1;
+            }
+
+            .activity-item small {
+                font-size: 0.8rem;
+                color: #666;
+            }
         
     </style>
 </head>
@@ -842,8 +967,27 @@ if (isset($_POST['delete'])) {
 
         <!-- EDIT button: toggles the edit form -->
         <button onclick="toggleEditForm()">Edit</button>
-        <button>Add pictures</button>
-        <button>Add products</button>
+        <button onclick="toggleImageUpload()">Add pictures</button>
+
+        <!-- Image Upload Modal -->
+        <div id="imageUploadModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; z-index: 10000;">
+            <h3>Upload New Image</h3>
+            <form method="POST" enctype="multipart/form-data">
+                <input type="file" name="repair_image" accept="image/*" required>
+                <div style="margin-top: 1rem;">
+                    <button type="button" onclick="toggleImageUpload()">Cancel</button>
+                    <button type="submit">Upload</button>
+                </div>
+            </form>
+        </div>
+
+        <script>
+        function toggleImageUpload() {
+            const modal = document.getElementById('imageUploadModal');
+            modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+        }
+        </script>
+        <button onclick="openProductForm()">Add products</button>
         <button>Print label</button>
         <button>Send confirmation E-mail</button>
         <button class="danger" onclick="if(confirmDelete()) { document.getElementById('deleteForm').submit(); }">Delete</button>
@@ -901,6 +1045,7 @@ if (isset($_POST['delete'])) {
     <div class="repair-products-box">
         <h3 style="font-size: 1.1rem; color: #2c3e50; margin-bottom: 1rem; margin-top: 1rem;">Repair Products</h3>
         <div class="bottom-box">
+            <h3>Repair Products</h3>
             <table>
                 <thead>
                     <tr>
@@ -908,18 +1053,42 @@ if (isset($_POST['delete'])) {
                         <th>Amount</th>
                         <th>Price</th>
                         <th>Subtotal</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>No repair products added</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>€ 0,00</td>
-                    </tr>
+                    <?php
+                    $productStmt = $conn->prepare("SELECT * FROM repair_products 
+                        WHERE reparatie_nummer = ?");
+                    $productStmt->execute([$reparatieNummer]);
+                    $products = $productStmt->fetchAll(PDO::FETCH_ASSOC);
+                    $total = 0;
+
+                    if (empty($products)) {
+                        echo '<tr><td colspan="5">No repair products added</td></tr>';
+                    } else {
+                        foreach ($products as $product) {
+                            $subtotal = $product['amount'] * $product['price'];
+                            $total += $subtotal;
+                            echo '<tr>
+                                <td>'.htmlspecialchars($product['product_name']).'</td>
+                                <td>'.$product['amount'].'</td>
+                                <td>€ '.number_format($product['price'], 2).'</td>
+                                <td>€ '.number_format($subtotal, 2).'</td>
+                                <td>
+                                    <button onclick="openProductForm('.$product['id'].')">Edit</button>
+                                    <form method="POST" style="display:inline">
+                                        <input type="hidden" name="delete_product" value="'.$product['id'].'">
+                                        <button type="submit">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>';
+                        }
+                    }
+                    ?>
                 </tbody>
             </table>
-            <div class="total-line">Total € 0,00</div>
+            <div class="total-line">Total € <?= number_format($total, 2) ?></div>
         </div>
     </div>
 
@@ -927,16 +1096,83 @@ if (isset($_POST['delete'])) {
     <div class="lowest-box">
         <div class="bottom-box2">
             <h3>Activity Log</h3>
-            <div class="activity-entry">
-                <p>No recent activity</p>
+            <div class="activity-list" style="max-height: 400px; overflow-y: auto;">
+                <?php
+                $activityStmt = $conn->prepare("
+                    SELECT * FROM activity_log 
+                    WHERE reparatie_nummer = ?
+                    ORDER BY created_at DESC
+                ");
+                $activityStmt->execute([$reparatieNummer]);
+                $activities = $activityStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if (empty($activities)) {
+                    echo '<p>No recent activity</p>';
+                } else {
+                    foreach ($activities as $activity) {
+                        echo '<div class="activity-item" style="padding: 0.5rem; border-bottom: 1px solid #eee;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <strong>' . htmlspecialchars($activity['activity_type']) . '</strong>
+                                <small style="color: #666;">' 
+                                    . date('M j, Y H:i', strtotime($activity['created_at'])) . 
+                                '</small>
+                            </div>
+                            <div>' . htmlspecialchars($activity['description']) . '</div>
+                            <div style="color: #666; font-size: 0.8rem;">
+                                User: ' . htmlspecialchars($activity['user']) . '
+                            </div>
+                        </div>';
+                    }
+                }
+                ?>
             </div>
         </div>
         <div class="bottom-box3">
             <h3>Pictures</h3>
-            <div class="image-gallery">
-                <p>No images uploaded</p>
+            <div class="image-gallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; padding: 1rem;">
+                <?php
+                $imageStmt = $conn->prepare("SELECT * FROM repair_images WHERE reparatie_nummer = ? ORDER BY uploaded_at DESC");
+                $imageStmt->execute([$reparatieNummer]);
+                $images = $imageStmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                if (empty($images)) {
+                    echo '<p>No images uploaded</p>';
+                } else {
+                    foreach ($images as $image) {
+                        echo '<div style="position: relative; cursor: pointer;" onclick="showFullImage(\'/uploads/' . htmlspecialchars($image['file_path']) . '\')">';
+                        echo '<img src="/uploads/' . htmlspecialchars($image['file_path']) . '" style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px;">';
+                        echo '</div>';
+                    }
+                }
+                ?>
             </div>
         </div>
+
+        <!-- Lightbox Modal -->
+        <div id="lightbox" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 90%; max-height: 90%;">
+                <img id="lightbox-img" src="" style="max-width: 100%; max-height: 90vh;">
+                <button onclick="closeLightbox()" style="position: absolute; top: -30px; right: -30px; background: none; border: none; color: white; font-size: 2rem;">×</button>
+            </div>
+        </div>
+
+        <script>
+        function showFullImage(src) {
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            img.src = src;
+            lightbox.style.display = 'block';
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').style.display = 'none';
+        }
+
+        // Close lightbox when clicking outside
+        document.getElementById('lightbox').addEventListener('click', function(e) {
+            if (e.target === this) closeLightbox();
+        });
+        </script>
     </div>
 
     <!-- Back Button -->
@@ -1035,6 +1271,58 @@ function toggleEditForm() {
         return confirm('Are you sure you want to delete this entry?\nThis action cannot be undone!');
     }
 </script>
+<div id="productModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:2rem; z-index:10000;">
+    <h3>Add/Edit Product</h3>
+    <form method="POST">
+        <input type="hidden" name="product_action" id="productAction">
+        <input type="hidden" name="product_id" id="productId">
+        
+        <div class="form-group">
+            <label>Product Name:</label>
+            <input type="text" name="product_name" id="productName" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Amount:</label>
+            <input type="number" name="amount" id="productAmount" min="1" value="1" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Price (€):</label>
+            <input type="number" name="price" id="productPrice" step="0.01" min="0" required>
+        </div>
+        
+        <div style="margin-top:1rem">
+            <button type="button" onclick="closeProductForm()">Cancel</button>
+            <button type="submit">Save</button>
+        </div>
+    </form>
+</div>
 
+<script>
+function openProductForm(productId = null) {
+    const modal = document.getElementById('productModal');
+    if(productId) {
+        // Fetch existing product data (you could pre-populate via PHP or use AJAX)
+        const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+        document.getElementById('productName').value = row.cells[0].textContent;
+        document.getElementById('productAmount').value = row.cells[1].textContent;
+        document.getElementById('productPrice').value = parseFloat(row.cells[2].textContent.replace('€ ', ''));
+        document.getElementById('productAction').value = 'edit';
+        document.getElementById('productId').value = productId;
+    } else {
+        document.getElementById('productAction').value = 'add';
+        document.getElementById('productId').value = '';
+        document.getElementById('productName').value = '';
+        document.getElementById('productAmount').value = 1;
+        document.getElementById('productPrice').value = 0;
+    }
+    modal.style.display = 'block';
+}
+
+function closeProductForm() {
+    document.getElementById('productModal').style.display = 'none';
+}
+</script>
 </body>
 </html>

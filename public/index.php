@@ -2,6 +2,9 @@
 // public/index.php
 require_once __DIR__ . '/../private/controllers/AuthController.php';
 $request = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+if ($request !== '/') {
+    $request = rtrim($request, '/');
+}
 if ($request === '/login') {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         AuthController::handleLogin();
@@ -17,8 +20,6 @@ if ($request === '/logout') {
 }
 require_once __DIR__ . '/../private/bootstrap.php';
 
-$request = $_SERVER['REQUEST_URI'];
-
 switch ($request) {
     case '/':
     case '/home':
@@ -33,6 +34,10 @@ switch ($request) {
     case '/reparaties':
         AuthController::checkAuth();
         require '../private/views/pages/reparaties.php';
+        break;
+    case '/generate-quote':
+        AuthController::checkAuth();
+        require __DIR__ . '/../private/views/pages/generate_quote.php';
         break;
     case '/complete':
         AuthController::checkAuth();
