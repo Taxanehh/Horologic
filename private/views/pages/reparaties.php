@@ -141,6 +141,9 @@ $horloges = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <p style="margin: 0.5rem 0 0 0; color: #2a6496; font-size: 1rem;">
                 Click on any item below to view details and generate a quotation
             </p>
+            <p style="margin: 0.5rem 0 0 0; color: #2a6496; font-size: 1rem;">
+                Only watches labeled "In progress" are eligable for quotation
+            </p>
         </div>
 
         <!-- Filter controls -->
