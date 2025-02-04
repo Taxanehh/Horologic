@@ -39,6 +39,10 @@ switch ($request) {
         AuthController::checkAuth();
         require __DIR__ . '/../private/views/pages/generate_quote.php';
         break;
+    case '/generate-invoice':
+        AuthController::checkAuth();
+        require __DIR__ . '/../private/views/pages/generate_invoice.php';
+        break;
     case '/complete':
         AuthController::checkAuth();
         require '../private/views/pages/complete.php';
