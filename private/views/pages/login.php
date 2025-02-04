@@ -1,7 +1,7 @@
 <?php
 ob_start();
 if (session_status() === PHP_SESSION_NONE) {
-  session_start();
+    session_start();
 }
 
 $error = '';
@@ -28,8 +28,32 @@ function findUserByEmail($email) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-// Redirect if logged in
-if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
+// 1) Check if there's already a session or a remember_me cookie
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    // ADDED FOR REMEMBER ME: Check cookie if session not active
+    if (!empty($_COOKIE['remember_token'])) {
+        $token = $_COOKIE['remember_token'];
+
+        // Check if token exists in DB
+        $conn = getDbConnection();
+        $stmt = $conn->prepare("SELECT * FROM users WHERE remember_token = :token LIMIT 1");
+        $stmt->bindValue(':token', $token, PDO::PARAM_STR);
+        $stmt->execute();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user) {
+            // Token is valid -> auto-login
+            $_SESSION['logged_in'] = true;
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_email'] = $user['email'];
+            session_regenerate_id(true);
+
+            header("Location: /home");
+            exit;
+        }
+    }
+} else {
+    // Already logged in via session
     header("Location: /home");
     exit;
 }
@@ -37,6 +61,7 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
     $password = $_POST['password'] ?? '';
+    $remember = !empty($_POST['remember']); // ADDED FOR REMEMBER ME
 
     $user = findUserByEmail($email);
 
@@ -70,13 +95,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             session_regenerate_id(true);
 
+            // 2) If "remember me" is checked, generate token + set cookie
+            if ($remember) {
+                $token = bin2hex(random_bytes(32)); // 64 char hex
+                $conn = getDbConnection();
+                $updateToken = $conn->prepare("UPDATE users SET remember_token = ? WHERE id = ?");
+                $updateToken->execute([$token, $user['id']]);
+
+                // Set cookie for ~30 days
+                setcookie('remember_token', $token, [
+                    'expires' => time() + (86400 * 30),
+                    'path'    => '/',
+                    'domain'  => $_SERVER['HTTP_HOST'], // adjust if needed
+                    'secure'  => isset($_SERVER['HTTPS']),
+                    'httponly'=> true,
+                    'samesite'=> 'Strict',
+                ]);
+            }
+
             header("Location: /home");
             exit;
         }
     }
 
     // If invalid credentials, set session error and redirect
-    $_SESSION['login_error'] = "Onjuiste email of wachtwoord.";
+    $_SESSION['login_error'] = "Incorrect credentials.";
     $_SESSION['old_email'] = $email;
     header("Location: /login");
     exit;
@@ -112,6 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           type="email" 
           name="email" 
           id="email"
+          value="<?php echo htmlspecialchars($emailValue); ?>"
           placeholder="E-mail" 
           required
         >

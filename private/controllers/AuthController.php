@@ -58,7 +58,7 @@ class AuthController {
                 }
             } else {
                 // Set error and redirect (for both invalid user and wrong password)
-                $_SESSION['login_error'] = "Onjuiste email of wachtwoord.";
+                $_SESSION['login_error'] = "Incorrect credentials";
                 session_write_close(); // Ensure session is saved before redirect
                 header("Location: /login");
                 exit;

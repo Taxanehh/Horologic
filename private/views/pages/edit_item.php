@@ -77,9 +77,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $updateStmt = $conn->prepare("UPDATE horloges SET Tag = ? WHERE ReparatieNummer = ?");
         if ($updateStmt->execute([$newStatus, $reparatieNummer])) {
             $oldStatus = $item['Tag'];
+        
+            // Convert old/new status from Dutch to English using $statusTags
+            $oldStatusEnglish = $statusTags[$oldStatus]['label'] ?? $oldStatus;
+            $newStatusEnglish = $statusTags[$newStatus]['label'] ?? $newStatus;
+        
             logActivity($conn, $reparatieNummer, ACT_STATUS,
-                "Status changed from $oldStatus to $newStatus");
-            $_SESSION['success'] = "Status updated to $newStatus";
+                "Status changed from $oldStatusEnglish to $newStatusEnglish"
+            );
+        
+            // Also update the success message in English
+            $_SESSION['success'] = "Status updated to $newStatusEnglish";
         } else {
             $_SESSION['error'] = "Error updating status";
         }
@@ -184,10 +192,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $warrentyBool = isset($_POST['WarrentyBool']) ? 1 : 0;
 
 if (isset($_POST['delete'])) {
+    // Log the activity BEFORE deleting the entry
+    logActivity($conn, $reparatieNummer, ACT_DELETE, "Repair entry deleted");
+    
+    // Now perform the deletion
     $deleteStmt = $conn->prepare("DELETE FROM horloges WHERE ReparatieNummer = ?");
     if ($deleteStmt->execute([$reparatieNummer])) {
-        logActivity($conn, $reparatieNummer, ACT_DELETE, 
-            "Repair entry deleted");
         $_SESSION['success'] = "Entry deleted successfully";
         header("Location: /home");  // Redirect to overview after deletion
         exit;
@@ -1070,15 +1080,16 @@ function logActivity($conn, $repairNumber, $type, $description) {
                         foreach ($products as $product) {
                             $subtotal = $product['amount'] * $product['price'];
                             $total += $subtotal;
-                            echo '<tr>
-                                <td>'.htmlspecialchars($product['product_name']).'</td>
-                                <td>'.$product['amount'].'</td>
-                                <td>€ '.number_format($product['price'], 2).'</td>
-                                <td>€ '.number_format($subtotal, 2).'</td>
+                        
+                            echo '<tr data-product-id="' . $product['id'] . '">
+                                <td>' . htmlspecialchars($product['product_name']) . '</td>
+                                <td>' . $product['amount'] . '</td>
+                                <td>€ ' . number_format($product['price'], 2) . '</td>
+                                <td>€ ' . number_format($subtotal, 2) . '</td>
                                 <td>
-                                    <button onclick="openProductForm('.$product['id'].')">Edit</button>
+                                    <button onclick="openProductForm(' . $product['id'] . ')">Edit</button>
                                     <form method="POST" style="display:inline">
-                                        <input type="hidden" name="delete_product" value="'.$product['id'].'">
+                                        <input type="hidden" name="delete_product" value="' . $product['id'] . '">
                                         <button type="submit">Delete</button>
                                     </form>
                                 </td>
