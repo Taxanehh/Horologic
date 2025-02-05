@@ -1,4 +1,7 @@
 <?php
+ini_set('SMTP', 'localhost'); ini_set('smtp_port', 1025);
+ini_set('sendmail_from', 'paul.stokreef@gmail.com');
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -213,6 +216,26 @@ try {
     $pdf->Cell(0, 10, '__________________________', 0, 1, 'L');
     $pdf->Cell(0, 5, conv('Authorized Signature'), 0, 1, 'L');
     */
+
+    $token = bin2hex(random_bytes(16));
+
+    // Update the current repair record with the token and set the quotation status to 'pending'
+    $updateStmt = $conn->prepare("UPDATE horloges SET quote_token = ?, quote_status = 'pending' WHERE ReparatieNummer = ?");
+    $updateStmt->execute([$token, $repairId]);
+
+    // Construct the acceptance URL (adjust yourdomain.com to your actual domain)
+    $acceptUrl = "http://localhost:3000/accept_quote?quote_id=20&token=9f0f1f78bead7eff737f0a2f6d4220e2";
+
+    // Prepare the email message
+    $subject = "Your Quotation from Horologic";
+    $message = "Dear Customer,\n\n"
+            . "Please review your quotation. To accept the quotation, please click the link below:\n\n"
+            . $acceptUrl . "\n\n"
+            . "If you do not wish to accept, you can decline the quotation by visiting the same link and leaving a comment.\n\n"
+            . "Thank you,\nHorologic Team";
+
+    // Send the email (you might want to add additional headers for HTML or proper From: information)
+    mail($repairData['Adres'], $subject, $message);
 
     // Output to browser
     ob_end_clean();

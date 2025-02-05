@@ -1,13 +1,21 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/../private/views/pages/db.php';
+$conn = getDbConnection();
 
 // Fetch current user's data
 $user = null;
 if (isset($_SESSION['user_id'])) {
-    $conn = getDbConnection();
     $stmt = $conn->prepare("SELECT full_name, email FROM users WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+$allowedUserIds = [1, 2];
+$notifications = [];
+if (isset($_SESSION['user_id']) && in_array($_SESSION['user_id'], $allowedUserIds)) {
+    $stmt = $conn->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 10");
+    $stmt->execute([$_SESSION['user_id']]);
+    $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 ?>
 
@@ -83,6 +91,58 @@ if (isset($_SESSION['user_id'])) {
       height: 32px;
       border-radius: 50%;
     }
+
+    /* Notification styles */
+    .notifications {
+      position: relative;
+      margin-right: 20px;
+      display: flex;
+      align-items: center;
+    }
+    .notifications .fa-bell {
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #333;
+    }
+    /* Clear notifications button styling */
+    #clearNotificationsBtn {
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #333;
+      margin-left: 5px;
+    }
+    .notification-list {
+      position: absolute;
+      right: 0;
+      top: 100%;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 300px;
+      max-height: 400px;
+      overflow-y: auto;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      display: none;
+      z-index: 1000;
+    }
+    .notification-list.visible {
+      display: block;
+    }
+    .notification-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      font-size: 0.9rem;
+    }
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+    .notification-item time {
+      display: block;
+      font-size: 0.8rem;
+      color: #666;
+    }
   </style>
 </head>
 <body>
@@ -100,11 +160,32 @@ if (isset($_SESSION['user_id'])) {
       <li><a href="/"><i class="fa fa-home"></i> Booking</a></li>
       <li><a href="/reparaties"><i class="fa fa-wrench"></i> Quotation</a></li>
       <li><a href="/complete"><i class="fa fa-euro"></i> Invoicing</a></li>
+      <li><a href="https://watchbase.com/"><i class="fa fa-link"></i> Watch database</a></li>
     </ul>
   </nav>
 
   <!-- Right: User Info -->
   <div class="user-info" id="userInfo">
+    <div class="notifications" id="notificationBellContainer">
+        <i class="fa fa-bell" id="notificationBell"></i>
+        <button id="clearNotificationsBtn" style="border: none; background: none; cursor: pointer; font-size: 1rem; color: #333; margin-left: 5px;" title="Clear Notifications">
+          <i class="fa fa-trash"></i>
+        </button>
+        <div class="notification-list" id="notificationList">
+          <?php if (!empty($notifications)): ?>
+            <?php foreach ($notifications as $notif): ?>
+              <div class="notification-item">
+                <?= htmlspecialchars($notif['message']) ?>
+                <time><?= date('M j, Y H:i', strtotime($notif['created_at'])) ?></time>
+              </div>
+            <?php endforeach; ?>
+          <?php else: ?>
+            <div class="notification-item">
+              No new notifications.
+            </div>
+          <?php endif; ?>
+        </div>
+    </div>
     <div class="user-text">
       <span class="user-name">
       <?php 
@@ -135,4 +216,29 @@ if (isset($_SESSION['user_id'])) {
   userInfo.addEventListener('click', () => {
     userDropdown.classList.toggle('hidden');
   });
+  // Toggle the notification list when clicking the bell
+  const notificationBell = document.getElementById('notificationBell');
+  const notificationList = document.getElementById('notificationList');
+  notificationBell.addEventListener('click', (e) => {
+    // Prevent the event from bubbling up
+    e.stopPropagation();
+    notificationList.classList.toggle('visible');
+  });
+
+  // Hide the notification list if clicking outside
+  document.addEventListener('click', function(e) {
+    if (!document.getElementById('notificationBellContainer').contains(e.target)) {
+      notificationList.classList.remove('visible');
+    }
+  });
+  // Handle clear notifications button with confirmation popup
+  const clearNotificationsBtn = document.getElementById('clearNotificationsBtn');
+  if (clearNotificationsBtn) {
+      clearNotificationsBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (confirm("Are you sure you want to delete all notifications?")) {
+              window.location.href = '/clear_notifications';
+          }
+      });
+  }
 </script>

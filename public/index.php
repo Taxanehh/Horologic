@@ -2,6 +2,18 @@
 // public/index.php
 require_once __DIR__ . '/../private/controllers/AuthController.php';
 $request = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+if ($request === '/clear_notifications') {
+    require_once __DIR__ . '/../private/views/pages/db.php';
+    session_start();
+    if (isset($_SESSION['user_id']) && in_array($_SESSION['user_id'], [1,2])) {
+        $conn = getDbConnection();
+        $stmt = $conn->prepare("DELETE FROM notifications WHERE user_id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+    }
+    header("Location: /");
+    exit;
+}
 if ($request !== '/') {
     $request = rtrim($request, '/');
 }
@@ -42,6 +54,9 @@ switch ($request) {
     case '/generate-invoice':
         AuthController::checkAuth();
         require __DIR__ . '/../private/views/pages/generate_invoice.php';
+        break;
+    case '/accept_quote':
+        require __DIR__ . '/../private/views/pages/accept_quote.php';
         break;
     case '/complete':
         AuthController::checkAuth();

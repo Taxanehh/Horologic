@@ -94,6 +94,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: /edit/" . $reparatieNummer);
         exit;
     }
+    if (isset($_POST['duplicate'])) {
+        // Duplicate the current repair record using $item (already fetched)
+        $newItem = $item; 
+        // Remove the primary key (assumes it's 'ReparatieNummer' and is auto-increment)
+        unset($newItem['ReparatieNummer']);
+        // Optionally, reset fields as needed:
+        if (isset($newItem['created_at'])) {
+            $newItem['created_at'] = date('Y-m-d H:i:s');  // update creation date if exists
+        }
+        // Reset the status to "Nieuw" (or your chosen default)
+        $newItem['Tag'] = 'Nieuw';
+
+        // Build the INSERT query dynamically
+        $columns = array_keys($newItem);
+        $values = array_values($newItem);
+        $columnsList = implode(", ", $columns);
+        $placeholders = implode(", ", array_fill(0, count($columns), "?"));
+        $insertStmt = $conn->prepare("INSERT INTO horloges ($columnsList) VALUES ($placeholders)");
+        if ($insertStmt->execute($values)) {
+            $newId = $conn->lastInsertId();
+            $_SESSION['success'] = "Repair duplicated successfully.";
+            header("Location: /edit/" . $newId);
+            exit;
+        } else {
+            $_SESSION['error'] = "Error duplicating repair.";
+            header("Location: /edit/" . $reparatieNummer);
+            exit;
+        }
+    }
     if (isset($_POST['product_action'])) {
         $productId = $_POST['product_id'] ?? null;
         $productName = $_POST['product_name'] ?? '';
@@ -1000,6 +1029,10 @@ function logActivity($conn, $repairNumber, $type, $description) {
         <button onclick="openProductForm()">Add products</button>
         <button>Print label</button>
         <button>Send confirmation E-mail</button>
+        <form method="POST" action="/edit/<?= htmlspecialchars($item['ReparatieNummer']) ?>" style="display:inline;">
+            <input type="hidden" name="duplicate" value="1">
+            <button type="submit">Duplicate</button>
+        </form>
         <button class="danger" onclick="if(confirmDelete()) { document.getElementById('deleteForm').submit(); }">Delete</button>
     </div>
 
