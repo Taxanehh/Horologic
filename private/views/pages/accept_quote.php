@@ -36,9 +36,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $_SESSION['success'] = "You have accepted the quotation.";
     } elseif ($action === 'decline') {
+        if (strlen($comment) > 256) {
+            $_SESSION['error'] = "Your comment cannot exceed 256 characters.";
+            // Reload the same page to allow the user to correct the comment
+            header("Location: " . $_SERVER['REQUEST_URI']);
+            exit;
+        }
         // Update the quote status to declined and store a comment
         $updateStmt = $conn->prepare("UPDATE horloges SET quote_status = 'declined', decline_comment = ? WHERE ReparatieNummer = ?");
         $updateStmt->execute([$comment, $quoteId]);
+        $operatorIds = [1, 2];
+        foreach ($operatorIds as $opId) {
+            $notifyStmt = $conn->prepare("INSERT INTO notifications (user_id, message, created_at) VALUES (?, ?, NOW())");
+            $message = "Quotation #{$quoteId} has been rejected. Comment: " . $comment;
+            $notifyStmt->execute([$opId, $message]);
+        }
         $_SESSION['success'] = "You have declined the quotation.";
     } else {
         $_SESSION['error'] = "Invalid action.";
@@ -82,6 +94,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 <h2>Quotation #<?= htmlspecialchars($quoteId) ?></h2>
+<?php
+// If there's an error message in the session, display it.
+if (isset($_SESSION['error'])):
+?>
+  <div class="error-message">
+      <?= htmlspecialchars($_SESSION['error']) ?>
+  </div>
+<?php
+    unset($_SESSION['error']); // Clear the error message so it doesn't persist.
+endif;
+?>
 <p>Please review your quotation. You may accept it or decline it with a comment.</p>
 <form method="POST">
     <?php if ($isDecline): ?>
